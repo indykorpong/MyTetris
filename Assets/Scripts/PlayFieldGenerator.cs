@@ -1,153 +1,140 @@
 ﻿using UnityEngine;
 
-public class PlayFieldGenerator : MonoBehaviour
+public static class PlayFieldGenerator
 {
-    public float blockBorderWidth; // block border size
-    public float blockWidth; // block complete width in y-axis
+    public const float BlockBorderWidth = 6; // block border size
+    public const float BlockWidth = 54; // square outer block's width
 
-    public int nHorizontalBlocks = 10;
-    public int nVerticalBlocks = 22;
-    private Vector3 _playFieldOffset;
+    private const int NHorizontalBlocks = 10;
+    private const int NVerticalBlocks = 22;
 
-    private float _xPlayFieldOffset;
-    private float _yPlayFieldOffset;
+    private static Vector3 _outerBlockOffset;
+    private static Vector3 _playFieldOffset;
+    private static float _xPlayFieldOffset;
+    private static float _yPlayFieldOffset;
 
-    private void Start()
+    public static void Init()
     {
-        CalculateOffset();
+        CalculateParameters();
         CreatePlayField();
     }
 
-    private void CalculateOffset()
+    private static void CalculateParameters()
     {
-        _xPlayFieldOffset = -(nHorizontalBlocks * (blockWidth - blockBorderWidth) + blockBorderWidth) / 2;
-        _yPlayFieldOffset = -(nVerticalBlocks * (blockWidth - blockBorderWidth) + blockBorderWidth) / 2;
+        _outerBlockOffset = new Vector3(0, 0, 0.1f);
+        _xPlayFieldOffset = -(NHorizontalBlocks * (BlockWidth - BlockBorderWidth) + BlockBorderWidth) / 2;
+        _yPlayFieldOffset = -(NVerticalBlocks * (BlockWidth - BlockBorderWidth) + BlockBorderWidth) / 2;
         _playFieldOffset = new Vector3(_xPlayFieldOffset, _yPlayFieldOffset, 0);
     }
 
-    private void CreatePlayField()
+    private static GameObject CreatePlayField()
     {
-        for (int y = 0; y < nVerticalBlocks; y++)
-        for (int x = 0; x < nHorizontalBlocks; x++)
+        var playField = new GameObject("PlayField");
+
+        for (int y = 0; y < NVerticalBlocks; y++)
+        for (int x = 0; x < NHorizontalBlocks; x++)
             if (x == 0 && y == 0)
             {
-                var block = CreateFullBlock(blockWidth, blockBorderWidth);
-                block.transform.parent = transform;
-                block.transform.position = _playFieldOffset + new Vector3(blockWidth / 2, blockWidth / 2, 0);
+                var block = CreateFullBlock(BlockWidth, BlockBorderWidth);
+                block.transform.parent = playField.transform;
+                block.transform.position = _playFieldOffset + new Vector3(BlockWidth / 2, BlockWidth / 2, 0);
             }
             else if (x > 0 && y == 0)
             {
-                var block = CreateSideBlock(blockWidth, blockBorderWidth);
-                block.transform.parent = transform;
+                var block = CreateSideBlock(BlockWidth, BlockBorderWidth);
+                block.transform.parent = playField.transform;
                 block.transform.position = _playFieldOffset + new Vector3(
-                    blockWidth + (x - 0.5f) * (blockWidth - blockBorderWidth),
-                    blockWidth / 2, 0);
+                    BlockWidth + (x - 0.5f) * (BlockWidth - BlockBorderWidth),
+                    BlockWidth / 2, 0);
             }
             else if (x == 0 && y > 0)
             {
-                var block = CreateUBlock(blockWidth, blockBorderWidth);
-                block.transform.parent = transform;
-                block.transform.position = _playFieldOffset + new Vector3(blockWidth / 2,
-                    blockWidth + (y - 0.5f) * (blockWidth - blockBorderWidth), 0);
+                var block = CreateUBlock(BlockWidth, BlockBorderWidth);
+                block.transform.parent = playField.transform;
+                block.transform.position = _playFieldOffset + new Vector3(BlockWidth / 2,
+                    BlockWidth + (y - 0.5f) * (BlockWidth - BlockBorderWidth), 0);
             }
             else
             {
-                var block = CreateQuarterBlock(blockWidth, blockBorderWidth);
-                block.transform.parent = transform;
+                var block = CreateQuarterBlock(BlockWidth, BlockBorderWidth);
+                block.transform.parent = playField.transform;
                 block.transform.position = _playFieldOffset + new Vector3(
-                    blockWidth + (x - 0.5f) * (blockWidth - blockBorderWidth),
-                    blockWidth + (y - 0.5f) * (blockWidth - blockBorderWidth), 0);
+                    BlockWidth + (x - 0.5f) * (BlockWidth - BlockBorderWidth),
+                    BlockWidth + (y - 0.5f) * (BlockWidth - BlockBorderWidth), 0);
             }
+
+        return playField;
     }
 
-    private GameObject CreateFullBlock(float fullWidth, float borderWidth)
+    private static GameObject CreateFullBlock(float fullWidth, float borderWidth)
     {
-        var block = new GameObject("FullBlock");
+        var fullBlock = new GameObject("FullBlock");
 
-        var outerBlock = new GameObject("OuterBlock");
-        outerBlock.transform.parent = block.transform;
-        var outerBlockSpriteRenderer = outerBlock.AddComponent<SpriteRenderer>();
-        outerBlockSpriteRenderer.sprite = CreateSquareBlockSprite(fullWidth, Color.black);
+        var outerBlock = CreateBlockObject("OuterBlock", fullBlock, _outerBlockOffset, new Vector2(fullWidth, fullWidth),
+            Color.black);
 
-        var innerBlock = new GameObject("InnerBlock");
-        innerBlock.transform.parent = block.transform;
-        var innerBlockSpriteRender = innerBlock.AddComponent<SpriteRenderer>();
-        innerBlockSpriteRender.sprite = CreateSquareBlockSprite(fullWidth - 2 * borderWidth, Color.white);
+        var innerBlock = CreateBlockObject("InnerBlock", fullBlock, Vector3.zero,
+            new Vector2(fullWidth - 2 * borderWidth, fullWidth - 2 * borderWidth), Color.white);
+
+        return fullBlock;
+    }
+
+    private static GameObject CreateSideBlock(float fullWidth, float borderWidth)
+    {
+        var sideBlock = new GameObject("SideBlock");
+
+        var outerBlock = CreateBlockObject("OuterBlock", sideBlock, _outerBlockOffset,
+            new Vector2(fullWidth - borderWidth, fullWidth),
+            Color.black);
+
+        var innerBlock = CreateBlockObject("InnerBlock", sideBlock, new Vector3(-borderWidth / 2, 0, 0),
+            new Vector2(fullWidth - 2 * borderWidth, fullWidth - 2 * borderWidth), Color.white);
+
+        return sideBlock;
+    }
+
+    private static GameObject CreateUBlock(float fullWidth, float borderWidth)
+    {
+        var uBlock = new GameObject("UBlock");
+
+        var outerBlock = CreateBlockObject("OuterBlock", uBlock, _outerBlockOffset,
+            new Vector2(fullWidth, fullWidth - borderWidth),
+            Color.black);
+
+        var innerBlock = CreateBlockObject("InnerBlock", uBlock, new Vector3(0, -borderWidth / 2, 0),
+            new Vector2(fullWidth - 2 * borderWidth, fullWidth - 2 * borderWidth), Color.white);
+
+        return uBlock;
+    }
+
+    private static GameObject CreateQuarterBlock(float fullWidth, float borderWidth)
+    {
+        var quarterBlock = new GameObject("QuarterBlock");
+
+        var outerBlock = CreateBlockObject("OuterBlock", quarterBlock, _outerBlockOffset,
+            new Vector2(fullWidth - borderWidth, fullWidth - borderWidth),
+            Color.black);
+
+        var innerBlock = CreateBlockObject("InnerBlock", quarterBlock, new Vector3(-borderWidth / 2, -borderWidth / 2, 0),
+            new Vector2(fullWidth - 2 * borderWidth, fullWidth - 2 * borderWidth), Color.white);
+
+        return quarterBlock;
+    }
+
+    public static GameObject CreateBlockObject(string objectName, GameObject parentObject, Vector3 localPosition,
+        Vector2 size, Color color)
+    {
+        var block = new GameObject(objectName);
+        block.transform.parent = parentObject.transform;
+        block.transform.localPosition = localPosition;
+        var blockSpriteRenderer = block.AddComponent<SpriteRenderer>();
+        blockSpriteRenderer.color = color;
+        blockSpriteRenderer.sprite = CreateRectangleSprite(size.x, size.y, color);
 
         return block;
     }
 
-    private GameObject CreateSideBlock(float fullWidth, float borderWidth)
-    {
-        var block = new GameObject("SideBlock");
-
-        var outerBlock = new GameObject("OuterBlock");
-        outerBlock.transform.parent = block.transform;
-        var outerBlockSpriteRenderer = outerBlock.AddComponent<SpriteRenderer>();
-        outerBlockSpriteRenderer.sprite = CreateRectangleSprite(fullWidth - borderWidth, fullWidth, Color.black);
-
-        var innerBlock = new GameObject("InnerBlock");
-        innerBlock.transform.parent = block.transform;
-        innerBlock.transform.position = new Vector3(-borderWidth / 2, 0, 0);
-        var innerBlockSpriteRender = innerBlock.AddComponent<SpriteRenderer>();
-        innerBlockSpriteRender.sprite =
-            CreateRectangleSprite(fullWidth - 2 * borderWidth, fullWidth - 2 * borderWidth, Color.white);
-
-        return block;
-    }
-
-    private GameObject CreateUBlock(float fullWidth, float borderWidth)
-    {
-        var block = new GameObject("UBlock");
-
-        var outerBlock = new GameObject("OuterBlock");
-        outerBlock.transform.parent = block.transform;
-        var outerBlockSpriteRenderer = outerBlock.AddComponent<SpriteRenderer>();
-        outerBlockSpriteRenderer.sprite =
-            CreateRectangleSprite(fullWidth, fullWidth - borderWidth, Color.black);
-
-        var innerBlock = new GameObject("InnerBlock");
-        innerBlock.transform.parent = block.transform;
-        innerBlock.transform.position = new Vector3(0, -borderWidth / 2, 0);
-        var innerBlockSpriteRender = innerBlock.AddComponent<SpriteRenderer>();
-        innerBlockSpriteRender.sprite =
-            CreateRectangleSprite(fullWidth - 2 * borderWidth, fullWidth - 2 * borderWidth, Color.white);
-
-        return block;
-    }
-
-    private GameObject CreateQuarterBlock(float fullWidth, float borderWidth)
-    {
-        var block = new GameObject("QuarterBlock");
-
-        var outerBlock = new GameObject("OuterBlock");
-        outerBlock.transform.parent = block.transform;
-        var outerBlockSpriteRenderer = outerBlock.AddComponent<SpriteRenderer>();
-        outerBlockSpriteRenderer.sprite =
-            CreateRectangleSprite(fullWidth - borderWidth, fullWidth - borderWidth, Color.black);
-
-        var innerBlock = new GameObject("InnerBlock");
-        innerBlock.transform.parent = block.transform;
-        innerBlock.transform.position = new Vector3(-borderWidth / 2, -borderWidth / 2, 0);
-        var innerBlockSpriteRender = innerBlock.AddComponent<SpriteRenderer>();
-        innerBlockSpriteRender.sprite =
-            CreateRectangleSprite(fullWidth - 2 * borderWidth, fullWidth - 2 * borderWidth, Color.white);
-
-        return block;
-    }
-
-    private Sprite CreateSquareBlockSprite(float length, Color color)
-    {
-        var texture = new Texture2D(Mathf.CeilToInt(length), Mathf.CeilToInt(length));
-        for (int y = 0; y < length; y++)
-        for (int x = 0; x < length; x++)
-            texture.SetPixel(x, y, color);
-
-        var tile = Sprite.Create(texture, new Rect(0, 0, length, length), new Vector2(0.5f, 0.5f), 1f);
-        return tile;
-    }
-
-    private Sprite CreateRectangleSprite(float width, float height, Color color)
+    private static Sprite CreateRectangleSprite(float width, float height, Color color)
     {
         var texture = new Texture2D(Mathf.CeilToInt(width), Mathf.CeilToInt(height));
         for (int y = 0; y < height; y++)

@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 286306408}
   - component: {fileID: 286306407}
   m_Layer: 0
-  m_Name: Playfield
+  m_Name: GameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -147,13 +147,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 286306406}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2982d4a1c8c712244a990c6b74b3d666, type: 3}
+  m_Script: {fileID: 11500000, guid: e8d552275d12abc4cb8b259b373cc285, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blockBorderWidth: 6
-  blockWidth: 54
-  nHorizontalBlocks: 10
-  nVerticalBlocks: 22
 --- !u!4 &286306408
 Transform:
   m_ObjectHideFlags: 0
