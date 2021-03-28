@@ -3,45 +3,68 @@ using UnityEngine;
 
 public static class TileManager
 {
-    private static List<Vector2Int> tileIPositions;
-    private static readonly int tileICount = 4;
+    private static Dictionary<PieceType, Direction[]> pieceDirectionsFromPieceType;
 
     public static void SetupParameters()
     {
-        tileIPositions = new List<Vector2Int>();
-        for (int i = 0; i < tileICount; i++)
-            tileIPositions.Add(new Vector2Int(PlayFieldGenerator.NHorizontalBlocks / 2 - 2 + i,
-                PlayFieldGenerator.NVerticalBlocks - 1));
+        pieceDirectionsFromPieceType = new Dictionary<PieceType, Direction[]>
+        {
+            [PieceType.I] = new[] {Direction.Right, Direction.Right, Direction.Right, Direction.Right},
+            [PieceType.J] = new[] {Direction.Right, Direction.Down, Direction.Right, Direction.Right}
+        };
     }
 
-    public static bool UpdateTile(ref List<Vector2Int> tilePositions, Direction direction)
+    public static void UpdateTile(ref Vector2Int originPosition, PieceType pieceType, Direction direction)
     {
         var deltaPosition = DirectionToVector2Int(direction);
 
-        foreach (var position in tilePositions)
-            if (IsOutOfBounds(position.x + deltaPosition.x, position.y + deltaPosition.y))
-                return false;
-
+        var tilePositions = CreateTile(originPosition, pieceType);
+        originPosition += deltaPosition;
+        var tileNewPositions = CreateTile(originPosition, pieceType);
+        if (tileNewPositions.Count == 0)
+        {
+            tileNewPositions = tilePositions;
+            originPosition -= deltaPosition;
+        }
 
         foreach (var position in tilePositions)
             PlayFieldGenerator.TileObjects[position.x, position.y].SetColor(Color.white);
 
-        for (int i = 0; i < tilePositions.Count; i++)
-        {
-            tilePositions[i] =
-                new Vector2Int(tilePositions[i].x + deltaPosition.x, tilePositions[i].y + deltaPosition.y);
-            PlayFieldGenerator.TileObjects[tilePositions[i].x, tilePositions[i].y].SetColor(Color.cyan);
-        }
-
-        return true;
+        foreach (var position in tileNewPositions)
+            PlayFieldGenerator.TileObjects[position.x, position.y].SetColor(Color.cyan);
     }
 
-    public static List<Vector2Int> CreateTileI()
+    public static List<Vector2Int> CreateTile(Vector2Int originPosition, PieceType pieceType)
     {
-        foreach (var position in tileIPositions)
-            PlayFieldGenerator.TileObjects[position.x, position.y].SetColor(Color.cyan);
+        var tilePositions = new List<Vector2Int>();
+        switch (pieceType)
+        {
+            case PieceType.I:
+                tilePositions = CreateTileI(originPosition);
+                break;
+        }
 
-        return tileIPositions;
+        return tilePositions;
+    }
+
+    public static List<Vector2Int> CreateTileI(Vector2Int originPosition)
+    {
+        var tilePositions = new List<Vector2Int>();
+        var position = originPosition;
+        var count = 0;
+        foreach (var direction in pieceDirectionsFromPieceType[PieceType.I])
+        {
+            if (count == 0)
+                count += 1;
+            else
+                position += DirectionToVector2Int(direction);
+
+            if (IsOutOfBounds(position.x, position.y)) return new List<Vector2Int>();
+            tilePositions.Add(position);
+            PlayFieldGenerator.TileObjects[position.x, position.y].SetColor(Color.cyan);
+        }
+
+        return tilePositions;
     }
 
     private static Vector2Int DirectionToVector2Int(Direction direction)

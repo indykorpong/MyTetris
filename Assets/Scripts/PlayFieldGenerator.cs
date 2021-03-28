@@ -15,7 +15,7 @@ public static class PlayFieldGenerator
     private static float _yPlayFieldOffset;
 
     private static Vector3[,] _tilePositions;
-    public static Tile[,] TileObjects { get; set; }
+    public static Tile[,] TileObjects { get; private set; }
 
     private static Vector3 _tileLayerOffset;
 
@@ -24,18 +24,6 @@ public static class PlayFieldGenerator
         SetupParameters();
         CreatePlayField();
         CreateTileLayer();
-    }
-
-    private static void CreateTileLayer()
-    {
-        var pieceLayer = new GameObject("TileLayer");
-        for (int y = 0; y < NVerticalBlocks; y++)
-        for (int x = 0; x < NHorizontalBlocks; x++)
-        {
-            TileObjects[x, y] = CreateTile($"Tile ({x},{y})", pieceLayer,
-                _tilePositions[x, y] + _tileLayerOffset, new Vector2(_innerBlockWidth, _innerBlockWidth),
-                Color.white);
-        }
     }
 
     private static void SetupParameters()
@@ -99,6 +87,18 @@ public static class PlayFieldGenerator
         return playField;
     }
 
+    private static void CreateTileLayer()
+    {
+        var pieceLayer = new GameObject("TileLayer");
+        for (int y = 0; y < NVerticalBlocks; y++)
+        for (int x = 0; x < NHorizontalBlocks; x++)
+        {
+            TileObjects[x, y] = CreateTile($"Tile ({x},{y})", pieceLayer,
+                _tilePositions[x, y] + _tileLayerOffset, new Vector2(_innerBlockWidth, _innerBlockWidth),
+                Color.white);
+        }
+    }
+    
     private static (GameObject, GameObject) CreateFullBlock(float fullWidth, float borderWidth)
     {
         var fullBlock = new GameObject("FullBlock");

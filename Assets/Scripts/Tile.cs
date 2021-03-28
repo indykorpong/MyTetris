@@ -14,15 +14,15 @@ public enum PieceType
 public enum Direction
 {
     Up,
-    Left,
+    Right,
     Down,
-    Right
+    Left
 }
 
 public class Tile
 {
     public GameObject TileObject { get; set; }
-    public SpriteRenderer SpriteRenderer { get; set; }
+    private SpriteRenderer SpriteRenderer { get; set; }
 
     public Tile(GameObject tileObject, SpriteRenderer spriteRenderer)
     {
